@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all unmatched collections and documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions for common security verifications
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && resource != null && resource.data.userId == request.auth.uid;
+    }
+
+    function isNewDocOwner() {
+      return isAuthenticated() && request.resource != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidOptionalString(data, fieldName, maxLen) {
+      return !(fieldName in data) || data[fieldName] == null || (data[fieldName] is string && data[fieldName].size() <= maxLen);
+    }
+
+    function isValidNumber(val, minVal, maxVal) {
+      return val is number && val >= minVal && val <= maxVal;
+    }
+
+    // Validation for User Profile documents (/users/{userId})
+    function isValidUserProfile(userId) {
+      let data = request.resource.data;
+      return isOwner(userId)
+        && (data.id == userId || !('id' in data))
+        && isValidOptionalString(data, 'name', 150)
+        && isValidOptionalString(data, 'email', 254)
+        && isValidOptionalString(data, 'college', 200)
+        && isValidOptionalString(data, 'branch', 100)
+        && isValidOptionalString(data, 'yearOfStudy', 50)
+        && isValidOptionalString(data, 'targetExam', 100);
+    }
+
+    // Validation for Conversation documents (/conversations/{conversationId})
+    function isValidConversation() {
+      let data = request.resource.data;
+      return isNewDocOwner()
+        && isValidString(data.title, 1, 200)
+        && isValidOptionalString(data, 'branch', 100)
+        && (!('isPinned' in data) || data.isPinned is bool);
+    }
+
+    // Validation for Message documents
+    function isValidMessage() {
+      let data = request.resource.data;
+      return isNewDocOwner()
+        && isValidString(data.role, 1, 20)
+        && isValidString(data.content, 1, 50000)
+        && isValidOptionalString(data, 'studyMode', 50)
+        && isValidOptionalString(data, 'branch', 100);
+    }
+
+    // Validation for Quiz Result documents
+    function isValidQuizResult() {
+      let data = request.resource.data;
+      return isNewDocOwner()
+        && isValidString(data.subject, 1, 100)
+        && isValidString(data.topic, 1, 200)
+        && isValidString(data.difficulty, 1, 30)
+        && isValidNumber(data.totalQuestions, 1, 50)
+        && isValidNumber(data.correctCount, 0, 50)
+        && isValidNumber(data.scorePercentage, 0, 100);
+    }
+
+    // 1. User Profiles & nested Subcollections
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Disallow querying the entire users collection
+      allow create: if isOwner(userId) && isValidUserProfile(userId);
+      allow update: if isOwner(userId) && isValidUserProfile(userId)
+                    && (!('createdAt' in resource.data) || !('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+      allow delete: if isOwner(userId);
+
+      // Nested Quizzes under a specific user
+      match /quizzes/{quizId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidQuizResult();
+        allow update: if isOwner(userId) && isValidQuizResult()
+                      && request.resource.data.userId == resource.data.userId;
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // 2. Direct Quizzes Collection
+    match /quizzes/{quizId} {
+      allow get, list: if isDocOwner();
+      allow create: if isNewDocOwner() && isValidQuizResult();
+      allow update: if isDocOwner() && isNewDocOwner() && isValidQuizResult()
+                    && request.resource.data.userId == resource.data.userId;
+      allow delete: if isDocOwner();
+    }
+
+    // 3. Conversations Collection & Subcollection Messages
+    match /conversations/{conversationId} {
+      allow get, list: if isDocOwner();
+      allow create: if isNewDocOwner() && isValidConversation();
+      allow update: if isDocOwner() && isNewDocOwner() && isValidConversation()
+                    && request.resource.data.userId == resource.data.userId
+                    && (!('createdAt' in resource.data) || !('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+      allow delete: if isDocOwner();
+
+      // Messages subcollection under a conversation
+      match /messages/{messageId} {
+        allow get, list: if isDocOwner();
+        allow create: if isNewDocOwner() && isValidMessage();
+        allow update: if isDocOwner() && isNewDocOwner() && isValidMessage()
+                      && request.resource.data.userId == resource.data.userId;
+        allow delete: if isDocOwner();
+      }
+    }
+
+    // 4. Direct Messages Collection (flat architecture support)
+    match /messages/{messageId} {
+      allow get, list: if isDocOwner();
+      allow create: if isNewDocOwner() && isValidMessage();
+      allow update: if isDocOwner() && isNewDocOwner() && isValidMessage()
+                    && request.resource.data.userId == resource.data.userId;
+      allow delete: if isDocOwner();
+    }
+  }
+}

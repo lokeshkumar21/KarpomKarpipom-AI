@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "UserProfile": {
+      "collection": "users",
+      "path": "users/{userId}",
+      "description": "Stores student profile information, study branch, college, and learning statistics.",
+      "fields": {
+        "id": { "type": "string", "description": "Firebase Auth user ID" },
+        "name": { "type": "string", "description": "Student full name" },
+        "email": { "type": "string", "description": "Student email address" },
+        "college": { "type": "string", "description": "University or college institution name" },
+        "branch": { "type": "string", "description": "Academic engineering or science discipline" },
+        "yearOfStudy": { "type": "string", "description": "Current year of study" },
+        "targetExam": { "type": "string", "description": "Target exam e.g. GATE or University Finals" },
+        "streakDays": { "type": "number", "description": "Consecutive days of active learning" },
+        "questionsCount": { "type": "number", "description": "Total queries asked" },
+        "quizzesTaken": { "type": "number", "description": "Total mock exams completed" },
+        "quizHighScore": { "type": "number", "description": "Highest score achieved in quizzes" },
+        "createdAt": { "type": "number", "description": "Creation timestamp in ms" },
+        "updatedAt": { "type": "number", "description": "Last update timestamp in ms" }
+      }
+    },
+    "Conversation": {
+      "collection": "conversations",
+      "path": "conversations/{conversationId}",
+      "description": "Stores user chat sessions, concept inquiries, and study mode metadata.",
+      "fields": {
+        "id": { "type": "string", "description": "Unique conversation identifier" },
+        "userId": { "type": "string", "description": "ID of the student who owns this conversation" },
+        "title": { "type": "string", "description": "Conversation topic title" },
+        "branch": { "type": "string", "description": "Engineering branch focus" },
+        "isPinned": { "type": "boolean", "description": "Whether pinned to the top of the sidebar" },
+        "createdAt": { "type": "number", "description": "Creation timestamp in ms" },
+        "updatedAt": { "type": "number", "description": "Last updated timestamp in ms" }
+      }
+    },
+    "Message": {
+      "collection": "messages",
+      "path": "conversations/{conversationId}/messages/{messageId}",
+      "description": "Stores individual chat messages exchanged between student and KarpomKarpipom AI.",
+      "fields": {
+        "id": { "type": "string", "description": "Unique message identifier" },
+        "conversationId": { "type": "string", "description": "Parent conversation ID" },
+        "userId": { "type": "string", "description": "Owner student user ID" },
+        "role": { "type": "string", "description": "'user' or 'assistant'" },
+        "content": { "type": "string", "description": "Textual markdown content of the query or explanation" },
+        "studyMode": { "type": "string", "description": "Active study mode when generated" },
+        "branch": { "type": "string", "description": "Branch when generated" },
+        "createdAt": { "type": "number", "description": "Message timestamp in ms" }
+      }
+    },
+    "QuizResult": {
+      "collection": "quizzes",
+      "path": "users/{userId}/quizzes/{quizId}",
+      "description": "Stores completed academic quizzes, question-by-question breakdown, accuracy score, and performance summary.",
+      "fields": {
+        "id": { "type": "string", "description": "Unique quiz result identifier" },
+        "userId": { "type": "string", "description": "Owner student user ID" },
+        "subject": { "type": "string", "description": "Academic branch/subject" },
+        "topic": { "type": "string", "description": "Tested concept topic" },
+        "difficulty": { "type": "string", "description": "Quiz difficulty level" },
+        "totalQuestions": { "type": "number", "description": "Total question count" },
+        "correctCount": { "type": "number", "description": "Number of correct answers" },
+        "scorePercentage": { "type": "number", "description": "Score percentage 0-100" },
+        "timeSpentSeconds": { "type": "number", "description": "Duration of test in seconds" },
+        "performanceSummary": { "type": "string", "description": "AI analysis summary" },
+        "completedAt": { "type": "number", "description": "Completion timestamp in ms" }
+      }
+    }
+  },
+  "securityRules": {
+    "description": "Strict user-level isolation: Each user can only read, write, and delete their own user profile, conversations, and messages."
+  }
+}
