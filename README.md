@@ -8,7 +8,7 @@ The platform combines **Google Gemini**, **React**, **TypeScript**, **Node.js**,
 
 ## 🌐 Live Application
 
-[KarpomKarpipom AI — Live Application](https://karpomkarpipom-ai.ai.studio?utm_source=chatgpt.com)
+[KarpomKarpipom AI — Live Application](https://karpomkarpipom-ai.ai.studio)
 
 ---
 
@@ -1217,7 +1217,7 @@ If no `LICENSE` file exists, the project should not claim a specific open-source
 
 # 🌐 Live Application
 
-[Open KarpomKarpipom AI](https://karpomkarpipom-ai.ai.studio?utm_source=chatgpt.com)
+[Open KarpomKarpipom AI](https://karpomkarpipom-ai.ai.studio)
 
 ---
 
