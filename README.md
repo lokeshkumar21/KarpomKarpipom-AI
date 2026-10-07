@@ -8,7 +8,7 @@ The platform combines **Google Gemini**, **React**, **TypeScript**, **Node.js**,
 
 ## 🌐 Live Application
 
-[KarpomKarpipom AI — Live Application](https://karpomkarpipom-ai.ai.studio)
+[KarpomKarpipom AI — Live Application](https://karpomkarpipom-ai-817239964219.asia-southeast1.run.app)
 
 ---
 
